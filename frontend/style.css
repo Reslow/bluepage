@@ -1,0 +1,47 @@
+body{
+    color:rgb(99, 160, 189)
+}
+
+main {
+    max-width: 60%;
+    margin-left: auto;
+    margin-right: auto;
+   
+}
+
+#content{
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: space-evenly;
+    gap:30px;
+
+}
+
+h1,h3{
+text-align: center;}
+
+h1{
+    font-size: 3em;;
+}
+
+
+
+ #createAccountContainer, #loginContainer{
+    display:grid;
+    grid-template-columns: auto;
+    gap: 30px 20px;;
+    width:100%;
+
+    }
+
+input{
+    width:100%;
+    padding:0px;
+    margin-top:10px;
+}
+
+button,input{
+    border-radius:3px;
+    border:lightblue 1px solid;;
+    height:50px;
+}
