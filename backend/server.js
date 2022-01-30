@@ -1,63 +1,25 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const nedb = require("nedb-promise");
 const app = express();
-const database = new nedb({ filename: "accounts.db", autoload: true });
 
 const bcryptFunctions = require("./bcrypt");
+
+const { admin, user } = require("./middleware/auth");
+
+const {
+  getAccountByUsername,
+  getAccountByEmail,
+  getAccountByCookie,
+  createAccount,
+  updateCookieOnAccount,
+  removeByCookie,
+  findAllByRole,
+  updatePasswordOnAccount,
+} = require("./database/operations");
 
 app.use(express.static("../frontend"));
 app.use(express.json());
 app.use(cookieParser());
-
-async function admin(req, res, next) {
-  const cookie = req.cookies.loggedIn;
-  console.log("I ADMIN MIDDLEWARE");
-
-  try {
-    const account = await database.find({ cookie: parseInt(cookie) });
-    // om vi inte hittar ett anvädarkonto
-    if (account.length == 0) {
-      throw new Error();
-    } else if (account[0].role == "admin") {
-      next();
-    } else {
-      throw new Error();
-    }
-  } catch (error) {
-    const responseObject = {
-      success: false,
-      errorMessage: "unauthorized",
-    };
-    res.json(responseObject);
-  }
-}
-
-// kolla att rollen är USER
-async function user(req, res, next) {
-  const cookie = req.cookies.loggedIn;
-  console.log("I USER MIDDLEWARE");
-
-  try {
-    const account = await database.find({ cookie: parseInt(cookie) });
-    // om vi inte hittar ett anvädarkonto
-    if (account.length == 0) {
-      throw new Error();
-    } else if (account[0].role == "user") {
-      next();
-    } else {
-      throw new Error();
-    }
-  } catch (error) {
-    const responseObject = {
-      success: false,
-      errorMessage: "unauthorized",
-    };
-    res.json(responseObject);
-  }
-}
-
-// SIGNUP push credentials to account array
 
 app.post("/api/signup", async (req, res) => {
   const credentials = req.body;
@@ -69,16 +31,9 @@ app.post("/api/signup", async (req, res) => {
     emailExists: false,
   };
 
-  const usernameExists = await database.find({
-    username: credentials.username,
-  });
-  const emailExists = await database.find({ email: credentials.email });
+  const usernameExists = await getAccountByUsername(credentials.username);
+  const emailExists = await getAccountByEmail(credentials.email);
 
-  // find returnerar en array, om den inte hittar en match så returneras en tom array
-  // console.log(emailExists);
-  // console.log(usernameExists);
-
-  // då en tom array returneras om ingen match så kollar vi om array-innehållet är mer än noll och sätter då värdet till true
   if (usernameExists.length > 0) {
     responseObject.usernameExists = true;
   }
@@ -102,7 +57,7 @@ app.post("/api/signup", async (req, res) => {
 
     // om datan inte finns så vill vi pusha in credentials till databasen
 
-    database.insert(credentials);
+    createAccount(credentials);
   }
 
   res.json(responseObject);
@@ -116,8 +71,7 @@ app.post("/api/login", async (req, res) => {
     success: false,
   };
 
-  const account = await database.find({ username: credentials.username });
-  console.log({ credentials, account });
+  const account = await getAccountByUsername(credentials.username);
 
   if (account.length > 0) {
     const correctPassword = await bcryptFunctions.comparePassword(
@@ -130,10 +84,7 @@ app.post("/api/login", async (req, res) => {
 
       const cookieId = Math.round(Math.random() * 10000);
 
-      database.update(
-        { username: credentials.username },
-        { $set: { cookie: cookieId } }
-      );
+      updateCookieOnAccount(credentials.username, cookieId);
 
       res.cookie("loggedIn", cookieId);
     }
@@ -150,9 +101,11 @@ app.get("/api/loggedin", async (req, res) => {
     loggedIn: false,
   };
 
-  const account = await database.find({ cookie: parseInt(cookie) });
+  let account = await getAccountByCookie(cookie);
+  console.log(account);
 
   if (account.length > 0) {
+    console.log("account is true");
     responseObject.loggedIn = true;
   }
 
@@ -176,7 +129,8 @@ app.get("/api/account", async (req, res) => {
     email: "",
     role: "",
   };
-  const account = await database.find({ cookie: parseInt(cookie) });
+
+  let account = await getAccountByCookie(cookie);
 
   if (account.length > 0) {
     responseObject.email = account[0].email;
@@ -194,18 +148,12 @@ app.get("/api/deleteAccount", user, (req, res) => {
     success: true,
   };
 
-  database.remove({ cookie: parseInt(cookie) });
+  removeByCookie(cookie);
 
   res.clearCookie("loggedIn");
 
   res.json(responseObject);
 });
-
-// when logout: check userCookie and remove cookie  then user should be redirected to startpage.
-
-// check if loggedin, look at cookie if cookie is assigned
-
-// Getting accountInfo
 
 app.get("/api/userAccount", admin, async (req, res) => {
   const responseObject = {
@@ -213,8 +161,9 @@ app.get("/api/userAccount", admin, async (req, res) => {
     accounts: "",
   };
 
-  //   mult:true för annars tar den första träffen endast och vi vill ha alla
-  const userAccounts = database.find({ role: "user" }, { multi: true });
+  const allusers = findAllByRole("user");
+  console.log(allusers);
+  console.log(userAccounts);
 
   if (userAccounts.length > 0) {
     responseObject.success = true;
@@ -238,10 +187,7 @@ app.post("/api/changePassword", async (req, res) => {
   // sedan skriver över resultratet med hashat lösen till credentials
   newPassword.password = hashedPasword;
 
-  database.update(
-    { cookie: parseInt(cookie) },
-    { $set: { password: newPassword.password } }
-  );
+  updatePasswordOnAccount(cookie, newPassword.password);
 
   res.json(responseObject);
 });
