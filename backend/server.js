@@ -1,6 +1,7 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const app = express();
+const jwt = require("jsonwebtoken");
 
 const bcryptFunctions = require("./bcrypt");
 
@@ -69,6 +70,7 @@ app.post("/api/login", async (req, res) => {
 
   let responseObject = {
     success: false,
+    token: "",
   };
 
   const account = await getAccountByUsername(credentials.username);
@@ -78,15 +80,14 @@ app.post("/api/login", async (req, res) => {
       credentials.password,
       account[0].password
     );
-    console.log(correctPassword);
+
     if (correctPassword) {
       responseObject.success = true;
 
-      const cookieId = Math.round(Math.random() * 10000);
-
-      updateCookieOnAccount(credentials.username, cookieId);
-
-      res.cookie("loggedIn", cookieId);
+      const token = jwt.sign({ username: account[0].username }, "a1b2c3", {
+        expiresIn: 600,
+      });
+      responseObject.token = token;
     }
   }
 
