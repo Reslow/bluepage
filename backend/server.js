@@ -33,6 +33,30 @@ async function admin(req, res, next) {
   }
 }
 
+// kolla att rollen är USER
+async function user(req, res, next) {
+  const cookie = req.cookies.loggedIn;
+  console.log("I USER MIDDLEWARE");
+
+  try {
+    const account = await database.find({ cookie: parseInt(cookie) });
+    // om vi inte hittar ett anvädarkonto
+    if (account.length == 0) {
+      throw new Error();
+    } else if (account[0].role == "user") {
+      next();
+    } else {
+      throw new Error();
+    }
+  } catch (error) {
+    const responseObject = {
+      success: false,
+      errorMessage: "unauthorized",
+    };
+    res.json(responseObject);
+  }
+}
+
 // SIGNUP push credentials to account array
 
 app.post("/api/signup", async (req, res) => {
@@ -162,7 +186,7 @@ app.get("/api/account", async (req, res) => {
   res.json(responseObject);
 });
 
-app.get("/api/deleteAccount", admin, (req, res) => {
+app.get("/api/deleteAccount", user, (req, res) => {
   console.log("DELETEING API ACCOUNT");
   const cookie = req.cookies.loggedIn;
 
