@@ -1,3 +1,4 @@
-{"username":"anna","email":"a","password":"b","role":"admin","_id":"0CoB2yOp53wcPoJK","cookie":9125}
-{"username":"aa","email":"aa","password":"$2a$10$0vjNKg4b0O/gJuSwHNgqvOAYwPValuK9YAfAt0I2glNp.pDJz5XXq","role":"user","_id":"BLV8i6dXl4UDVwpQ","cookie":7409}
-{"username":"hedda","email":"hedda","password":"$2a$10$B0oieVUEh5hfJbtjAQiG4OvmONpmQJOzUbjLQV5QeBf1C4aN//l.S","role":"user","_id":"h4eLREbjwexutg0D","cookie":3036}
+{"username":"anna","email":"anna","password":"$2a$10$6hFjQp/EKO57ECAs/Tb5KubzQqfnwpQFr0VshVtMWLm4MjObF5FAC","role":"admin","_id":"Bn0kNPScbfzsMmL0"}
+{"username":"emma","email":"emma","password":"$2a$10$mqOxe5ryY5IJIJ7jSxUk3eCkL2.3UdTVeTXskCym1HBru7GXtIwJW","role":"user","_id":"hFmTXmaiQP0R3vxF"}
+{"username":"anna","email":"anna","password":"$2a$10$6hFjQp/EKO57ECAs/Tb5KubzQqfnwpQFr0VshVtMWLm4MjObF5FAC","role":"admin","_id":"Bn0kNPScbfzsMmL0","cookie":4114}
+{"username":"emma","email":"emma","password":"$2a$10$mqOxe5ryY5IJIJ7jSxUk3eCkL2.3UdTVeTXskCym1HBru7GXtIwJW","role":"user","_id":"hFmTXmaiQP0R3vxF","cookie":9213}

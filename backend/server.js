@@ -199,7 +199,7 @@ app.get("/api/userAccount", admin, async (req, res) => {
   res.json(responseObject);
 });
 
-app.post("/api/changePassword", (req, res) => {
+app.post("/api/changePassword", async (req, res) => {
   const newPassword = req.body;
 
   const cookie = req.cookies.loggedIn;
@@ -207,6 +207,12 @@ app.post("/api/changePassword", (req, res) => {
   const responseObject = {
     success: true,
   };
+
+  const hashedPasword = await bcryptFunctions.hashPassword(
+    newPassword.password
+  );
+  // sedan skriver över resultratet med hashat lösen till credentials
+  newPassword.password = hashedPasword;
 
   database.update(
     { cookie: parseInt(cookie) },
