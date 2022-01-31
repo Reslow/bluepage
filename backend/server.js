@@ -95,21 +95,23 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.get("/api/loggedin", async (req, res) => {
-  const cookie = req.cookies.loggedIn;
   console.log("--/API/LOGGEDIN--");
+  const token = req.headers.authorization.replace("Bearer ", "");
 
   let responseObject = {
     loggedIn: false,
   };
 
-  let account = await getAccountByCookie(cookie);
-  console.log(account);
-
-  if (account.length > 0) {
-    console.log("account is true");
-    responseObject.loggedIn = true;
+  try {
+    const data = jwt.verify(token, "a1b2c3");
+    console.log(data);
+    // viktigt att andra argumenetet är samma säkerhetsträng som vid jwt.sign
+    if (data) {
+      responseObject.loggedIn = true;
+    }
+  } catch (error) {
+    responseObject.message = "token has expired!!!";
   }
-
   res.json(responseObject);
 });
 
@@ -124,18 +126,22 @@ app.get("/api/logout", (req, res) => {
 });
 
 app.get("/api/account", async (req, res) => {
-  const cookie = req.cookies.loggedIn;
-
+  console.log("API ACCOUNT");
+  const token = req.headers.authorization.replace(`Bearer `, "");
   const responseObject = {
     email: "",
     role: "",
   };
 
-  let account = await getAccountByCookie(cookie);
-
-  if (account.length > 0) {
-    responseObject.email = account[0].email;
-    responseObject.role = account[0].role;
+  try {
+    const data = jwt.verify(token, "a1b2c3");
+    let account = await getAccountByUsername(data.username);
+    if (account.length > 0) {
+      responseObject.email = account[0].email;
+      responseObject.role = account[0].role;
+    }
+  } catch (error) {
+    responseObject.message = "Token has expired!!";
   }
 
   res.json(responseObject);
